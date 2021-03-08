@@ -33,6 +33,7 @@ function format {
 
 function fmount {
 	mount $3 /mnt
+	mkdir /mnt/boot
 	mount $1 /mnt/boot
 	swapon $2
 }
