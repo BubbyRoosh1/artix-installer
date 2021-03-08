@@ -1,0 +1,19 @@
+#!/bin/sh
+printf "Please enter your timezone (example: America/Chicago): "
+read tz
+ln -sf /usr/share/zoneinfo/$tz /etc/localtime
+hwclock --systohc
+printf "Setting locales (en_US.UTF-8)"
+printf "en_US.UTF-8\n" >> /etc/locale.gen
+printf "export LANG=\"en_US.UTF-8\"\n" >> /etc/locale.conf
+locale-gen
+printf "Making the system bootable"
+pacman -S grub efibootmgr
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=grub
+grub-mkconfig -o /boot/grub/grub.cfg
+printf "Please enter your desired hostname: "
+read hostname
+printf "$hostname" > /etc/hostname
+printf "hostname=\'$hostname\'" > /etc/conf.d/hostname
+printf "127.0.0.1\tlocalhost\n::1\tlocalhost\n127.0.0.1\t%s.localdomain\t%s" "$hostname" $hostname > /etc/conf.d/hostname
+passwd

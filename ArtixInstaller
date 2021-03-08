@@ -1,0 +1,75 @@
+#!/bin/sh
+
+function partition {
+	(
+	echo g # Set to gpt label
+	echo n # New partition
+	echo # Name 1
+	echo # Start at front or something lol
+	echo +512M # End +512M
+	echo t # Set type..
+	echo 1 # ..to EFI System
+	echo n
+	echo 
+	echo 
+	echo +$2
+	echo t
+	echo 2
+	echo 19
+
+	echo n
+	echo 
+	echo 
+	echo 
+	echo w
+	) | fdisk $1 > /dev/null 2>&1
+}
+
+function format {
+	mkfs.vfat -F32 $1
+	mkswap $2
+	mkfs.ext4 $3
+}
+
+function fmount {
+	mount $3 /mnt
+	mount $1 /mnt/boot
+	swapon $2
+}
+
+DISKS=$(ls /dev/sd*[a-z])
+
+printf "Available disks:\n%s\n" "$DISKS"
+printf "Please enter the disk you wish to partition: "
+read disk
+
+printf "Enter the size of swap space: "
+read swapsize
+
+BOOT="${disk}1"
+SWAP="${disk}2"
+ROOT="${disk}3"
+
+printf "Wiping $disk...\n"
+wipefs --all $disk
+
+printf "Partitioning\n"
+partition $disk $swapsize
+
+printf "Formatting partitions\n"
+format $BOOT $SWAP $ROOT
+
+printf "Mounting partitions\n"
+fmount $BOOT $SWAP $ROOT
+
+printf "Installing base system (base, base-devel, linux, linux-firmware, openrc, networkmanager, dhcpcd, connman, vim)\n"
+basestrap /mnt base base-devel linux linux-firmware openrc networkmanager dhcpcd connman vim
+
+printf "Generating fstab\n"
+fstabgen -U /mnt >> /mnt/etc/fstab
+
+mkpart2
+
+printf "Setting up base system...\n"
+mv Chroot /mnt/
+artix-chroot /mnt  /bin/bash -c "./Chroot"
