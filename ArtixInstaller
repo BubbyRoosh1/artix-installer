@@ -63,13 +63,14 @@ printf "Mounting partitions\n"
 fmount $BOOT $SWAP $ROOT
 
 printf "Installing base system (base, base-devel, linux, linux-firmware, openrc, networkmanager, dhcpcd, connman, vim)\n"
-basestrap /mnt base base-devel linux linux-firmware openrc networkmanager dhcpcd connman vim
+basestrap /mnt base base-devel linux linux-firmware openrc networkmanager dhcpcd connman connman-openrc vim
 
 printf "Generating fstab\n"
 fstabgen -U /mnt >> /mnt/etc/fstab
 
-mkpart2
-
 printf "Setting up base system...\n"
 mv Chroot /mnt/
 artix-chroot /mnt  /bin/bash -c "./Chroot"
+
+umount -R /mnt
+printf "Done! Reboot to enter new system.\n"
