@@ -40,7 +40,7 @@ function fmount {
 
 DISKS=$(ls /dev/sd*[a-z])
 
-printf "Available disks:\n%s\n" "$DISKS"
+printf "Available disks:\n%s\n" $DISKS
 printf "Please enter the disk you wish to partition: "
 read disk
 
@@ -73,5 +73,7 @@ printf "Setting up base system...\n"
 mv Chroot /mnt/
 artix-chroot /mnt  /bin/bash -c "./Chroot"
 
+printf "Unmounting partitions\n"
 umount -R /mnt
+
 printf "Done! Reboot to enter new system.\n"
